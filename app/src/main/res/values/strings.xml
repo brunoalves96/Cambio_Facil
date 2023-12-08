@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Câmbio Fácil</string>
+    <array name="list_coins">
+        <item>(BRL) Real</item>
+        <item>(USD) Dólar Americano</item>
+        <item>(EUR) Euro</item>
+        <item>(JPY) Iene</item>
+    </array>
 </resources>
