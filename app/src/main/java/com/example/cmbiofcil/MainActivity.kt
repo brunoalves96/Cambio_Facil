@@ -1,5 +1,7 @@
 package com.example.cmbiofcil
 
+import android.annotation.SuppressLint
+import android.icu.text.Transliterator.Position
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -10,6 +12,9 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import kotlinx.coroutines.selects.select
+import org.json.JSONObject
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 class MainActivity : AppCompatActivity() {
     private lateinit var spinnerCoin1: Spinner //Criação de uma variával do tipo Spinner
@@ -35,9 +40,9 @@ class MainActivity : AppCompatActivity() {
         ).also { adapter -> // Especifica o tipo de layout a ser utilizado nos spinners
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerCoin1.adapter = adapter // Aplica o adaptador no primeiro spinner.
-            spinnerCoin1.setSelection(0,true)//Para que o primeiro Spinner inicie com o primeiro item da lista selecionado.
+            spinnerCoin1.setSelection(1,true)//Para que o primeiro Spinner inicie com o segundo item da lista selecionado.
             spinnerCoin2.adapter = adapter // Aplica o adaptador no segundo spinner.
-            spinnerCoin2.setSelection(1,true) // Para que a segundo Spinner inicie com o segundo item da lista selecionado.
+            spinnerCoin2.setSelection(0,true) // Para que a segundo Spinner inicie com o primeiro item da lista selecionado.
         }
 
 
@@ -76,11 +81,57 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    @SuppressLint("SuspiciousIndentation")
     private fun converterMoeda() {
-        val selecao1 = spinnerCoin1.selectedItemPosition  //Variável para armazenar o número de posição (position) do item selecionado pelo usuário no 1º Spinner.
-        val selecao2 = spinnerCoin2.selectedItemPosition  //Variável para armazenar o número de posição (position) do item selecionado pelo usuário no 2º Spinner.
+        val selecao1 =
+            spinnerCoin1.selectedItemPosition.toString()  //Variável para armazenar o número de posição (position) do item selecionado pelo usuário no 1º Spinner e converte em uma STRING.
+        val selecao2 =
+            spinnerCoin2.selectedItemPosition.toString()  //Variável para armazenar o número de posição (position) do item selecionado pelo usuário no 2º Spinner e converte em uma STRING.
 
-        resultado.text = "Posição 1: $selecao1 e Posição 2: $selecao2"
+        val moeda1 = when(selecao1){     //-> A variável utiliza uma condicional que recebe o número da posição da variável "selecao1" e retorna a
+            "0" -> "BRL"                 // sigla da moeda correspondente.
+            "1" -> "USD"
+            "2" -> "EUR"
+            else -> {"JPY"}
+        }
+
+        val moeda2 = when(selecao2){     //-> A variável utiliza uma condicional que recebe o número da posição da variável "selecao2" e retorna a
+            "0" -> "BRL"                 // sigla da moeda correspondente.
+            "1" -> "USD"
+            "2" -> "EUR"
+            else -> {"JPY"}
+        }
+
+        val valorDigitado = valorInserido.text.toString()   // A variável recebe o valor inserido pelo usuário e converte em uma STRING.
+
+        if(valorDigitado.isEmpty() || moeda1 == moeda2){   // A condicional verifica se o usuário não digitou um valor ou se as moedas selecionadas são iguais.
+            return                    // Para a execução do código caso a condicional seja verdadeira.
+        }
+
+        Thread{
+
+            val link = URL("https://economia.awesomeapi.com.br/last/$moeda1-$moeda2")
+            val conexao = link.openConnection() as HttpsURLConnection
+
+                try {
+                    val dados = conexao.inputStream.bufferedReader().readText()
+                    val objeto = JSONObject(dados)
+
+                    runOnUiThread{
+                    val buscarObjeto = objeto.getJSONObject("${moeda1+moeda2}")
+
+                        val cotacao = buscarObjeto.getDouble("bid").toString()
+                        val infAtualizacao = buscarObjeto.getString("create_date")
+                        resultado.text = "$cotacao\n$infAtualizacao"
+                    }
+
+                }
+                finally {
+                    conexao.disconnect()
+                }
+
+        }.start()
+
     }
 
 }
