@@ -15,13 +15,14 @@ import kotlinx.coroutines.selects.select
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
+import kotlin.time.times
 
 class MainActivity : AppCompatActivity() {
     private lateinit var spinnerCoin1: Spinner //Criação de uma variával do tipo Spinner
     private lateinit var valorInserido: EditText //Criação de uma variával do tipo EditText
     private lateinit var spinnerCoin2: Spinner //Criação de uma segunda variával do tipo Spinner
     private lateinit var buttonConvert: Button //Criação de uma variával do tipo Button
-    private lateinit var resultado: TextView //Criação de uma variával do tipo TextView
+    private lateinit var resultado: TextView//Criação de uma variával do tipo TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,9 +121,14 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread{
                     val buscarObjeto = objeto.getJSONObject("${moeda1+moeda2}")
 
-                        val cotacao = buscarObjeto.getDouble("bid").toString()
+                        val cotacao = buscarObjeto.getDouble("bid")
                         val infAtualizacao = buscarObjeto.getString("create_date")
-                        resultado.text = "$cotacao\n$infAtualizacao"
+
+                        val calculo = (valorDigitado.toDouble())*cotacao
+
+                        val texto:String = getString(R.string.Texto_Resultado, moeda1, moeda2, calculo, cotacao, infAtualizacao)
+                        resultado.text = texto
+
                     }
 
                 }
