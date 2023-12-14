@@ -1,7 +1,7 @@
 package com.example.cmbiofcil
 
 import android.annotation.SuppressLint
-import android.icu.text.Transliterator.Position
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -11,11 +11,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
-import kotlinx.coroutines.selects.select
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
-import kotlin.time.times
 
 class MainActivity : AppCompatActivity() {
     private lateinit var spinnerCoin1: Spinner //Criação de uma variával do tipo Spinner
@@ -27,6 +25,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        supportActionBar?.hide()
+        window.statusBarColor = Color.parseColor("#7ED957")
 
         spinnerCoin1 = findViewById(R.id.spinnerListCoin1) // Inicia a variável buscando a view Spinner pela Id atribuida no arquivo xml
         valorInserido = findViewById(R.id.editTextValueCoin) // Inicia a variável buscando a view EditText pela Id atribuida no arquivo xml
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    @SuppressLint("SuspiciousIndentation")
+    @SuppressLint("SuspiciousIndentation", "SetTextI18n")
     private fun converterMoeda() {
         val selecao1 =
             spinnerCoin1.selectedItemPosition.toString()  //Variável para armazenar o número de posição (position) do item selecionado pelo usuário no 1º Spinner e converte em uma STRING.
@@ -106,37 +107,41 @@ class MainActivity : AppCompatActivity() {
         val valorDigitado = valorInserido.text.toString()   // A variável recebe o valor inserido pelo usuário e converte em uma STRING.
 
         if(valorDigitado.isEmpty() || moeda1 == moeda2){   // A condicional verifica se o usuário não digitou um valor ou se as moedas selecionadas são iguais.
-            return                    // Para a execução do código caso a condicional seja verdadeira.
+            return                 // Para a execução do código caso a condicional seja verdadeira.
         }
 
-        Thread{
+        Thread{  //Esse processo executa o bloco de código abaixo de forma paralela ao bloco de código executado na MainActivity
 
-            val link = URL("https://economia.awesomeapi.com.br/last/$moeda1-$moeda2")
-            val conexao = link.openConnection() as HttpsURLConnection
+            val link = URL("https://economia.awesomeapi.com.br/last/$moeda1-$moeda2") //A variável utiliza o objeto URl dinâmica que é modificada com os valores das duas variáveis, ou seja, as moedas escolhidas pelo usuário.
+            val conexao = link.openConnection() as HttpsURLConnection // A variável inicia uma conxão de rede e transforma em uma conexão https
 
-                try {
-                    val dados = conexao.inputStream.bufferedReader().readText()
-                    val objeto = JSONObject(dados)
+                try {   //Executa um bloco de código caso não ocorra erro na conexão de rede.
+                    val dados = conexao.inputStream.bufferedReader().readText() //A variável irá acessar os dados da API(em formato bit) e converter esses dados em texto
+                    val objeto = JSONObject(dados) //A variável executa o objeto JSONObject para receber os dados da API que são formatados em JSON
 
-                    runOnUiThread{
-                    val buscarObjeto = objeto.getJSONObject("${moeda1+moeda2}")
+                    runOnUiThread{  //Esse recurso leva os dados obtidos para a MainActivity
+                    val buscarObjeto = objeto.getJSONObject("${moeda1+moeda2}") //Acessa a chave principal na API que tem o nome das duas moedas escolhidas
 
-                        val cotacao = buscarObjeto.getDouble("bid")
-                        val infAtualizacao = buscarObjeto.getString("create_date")
+                        val cotacao = buscarObjeto.getDouble("bid")  //Acessa dentro da chave principai, a chave que contem o valor da cotação das duas moedas
+                        val infAtualizacao = buscarObjeto.getString("create_date") //Acessa dentro da chave principal a data e o horário da ultia atulização da cotação
 
-                        val calculo = (valorDigitado.toDouble())*cotacao
+                        val calculo = (valorDigitado.toDouble())*cotacao  // Realiza o calculo da conversão.
 
-                        val texto:String = getString(R.string.Texto_Resultado, moeda1, moeda2, calculo, cotacao, infAtualizacao)
-                        resultado.text = texto
+
+                        resultado.text = "RESULTADO DA CONVERSÃO\n\n"+   //Mostra o resultado ao usuário na TextView, com um texto dinâmico.
+                                "Conversão de $moeda1 para $moeda2\n\n"+
+                                "Resultado: ${"%.2f".format(calculo)}\n\n" +
+                                "Taxa da Cotação: ${"%.2f".format(cotacao)}\n\n" +
+                                "Última Atualização: $infAtualizacao"
 
                     }
 
                 }
-                finally {
-                    conexao.disconnect()
+                finally {    //Esse bloco é executado após a execução bloco TRY ou se ocorrer erro na conexão.
+                    conexao.disconnect()  //Fecha a conexão de rede
                 }
 
-        }.start()
+        }.start() // Inicia o processo "Thread"
 
     }
 

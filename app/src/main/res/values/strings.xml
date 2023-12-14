@@ -6,11 +6,11 @@
         <item>(EUR) Euro</item>
         <item>(JPY) Iene</item>
     </array>
-    <string name="Texto_Resultado"><big><b>RESULTADO DA CONVERSÃO</b></big>\n
-        <b>Conversão de</b> %1$s <b>para</b> %2$s \n
-        <b>Resultado:</b> %3$d \n\n
-        <b>Taxa da Cotação:</b> %4$d \n
-        <b>Última Atualização:</b> %5$s
+    <string name="Texto_Resultado"><b>RESULTADO DA CONVERSÃO</b>\n
+        Conversão de %1$s para %2$s\n
+        Resultado: %3$d\n
+        Taxa da Cotação: %4$d\n
+        Última Atualização: %5$s\n
 
     </string>
 </resources>
